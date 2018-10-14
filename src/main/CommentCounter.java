@@ -1,3 +1,5 @@
+package main;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -6,17 +8,23 @@ public class CommentCounter {
 	private String fileName;
 	private String fileType;
 	
+	//delimiters or strings that represent the comment for each specific programming language
+	//e.g. for C++ singleComment = "//", blockCommentStart = "/*", blockCommentEnd = "*/"
+	private String singleComment;
+	private String blockCommentStart; 
+	private String blockCommentEnd;
+
+	
 	//Main Constructor
-	CommentCounter(String filepath){
+	public CommentCounter(String filepath){
 		this.filePath= Paths.get(filepath);
 		this.fileName = filePath.getFileName().toString();
 		
 		//get the file's extension and store it in filetype
 		int indexOfPeriod = fileName.lastIndexOf('.'); //get the index of the last '.' in the filename, which will precede the file type extension
-		if(indexOfPeriod > 0)
+		if(indexOfPeriod > 0 && fileName.charAt(0) != '.') //if first character is '.', it can be ignored
 			this.fileType = fileName.substring(indexOfPeriod+1, fileName.length());
-		else //if the index is equal to zero, the filename starts with a '.' and can be ignored
-			//if the number returned is negative then there is no '.', which means there is no file extension and it can also be ignored
+		else //if the number returned is negative then there is no '.', which means there is no file extension and it can also be ignored
 			this.fileType = null;
 	}
 	
@@ -38,7 +46,7 @@ public class CommentCounter {
 
 
 	public static void main(String[] args) {
-		CommentCounter c = new CommentCounter("kljdksa.txt");
+		CommentCounter c = new CommentCounter(".kljdksa.txt");
 		System.out.println(c.getFileType());
 	}
 
