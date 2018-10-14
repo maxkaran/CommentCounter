@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.platform.commons.util.StringUtils;
-
 public class CommentCounter {
 	private Path filePath;
 	private String fileName;
@@ -37,9 +35,9 @@ public class CommentCounter {
 		
 		//For now, comment strings will be hard coded
 		//TODO dynamically generate these based on file input
-		singleComment = "//";
-		blockCommentStart = "/*";
-		blockCommentEnd = "*/";
+		singleComment = "#";
+		blockCommentStart = null;
+		blockCommentEnd = null;
 	}
 	
 	//______________________________________________GETTERS AND SETTERS____________________________________________________________
@@ -91,9 +89,8 @@ public class CommentCounter {
 				continue;
 			}
 			
-			//check for a TODO
-			if(line.contains("TODO"))
-				TODOcount += CommentCounter.countOccurences(line, "TODO");
+			//check for TODOs
+			TODOcount += CommentCounter.countOccurencesOfTODO(line);
 			
 			if(!inBlockComment) { //if not currently in a block comment
 				
@@ -170,23 +167,50 @@ public class CommentCounter {
 	}
 
 	//helper function that counts the number of occurences of a substring in a string
-	private static int countOccurences(String str, String subString) {
+	private static int countOccurencesOfTODO(String str) {
 		int count = 0;
+		String subString = "TODO";
 		
-		for (int pos = str.indexOf(subString); pos >= 0; pos = str.indexOf(subString, pos + 1))
-		    count++;
+		for (int pos = str.indexOf(subString); pos >= 0; pos = str.indexOf(subString, pos + 1)) {
+			
+			char characterAfter = ' '; //this is the character immediately after the TODO
+			char characterBefore = ' '; //this is the character before
+			
+			if(pos+subString.length() <= str.length()-1) //check if within bounds of main string
+				characterAfter = str.charAt(pos+subString.length()); //this is the character immediately after the TODO
+			
+			if(pos>0) //check if withing bounds of main string
+				characterBefore = str.charAt(pos-1);
+
+			
+			//convert to lowercase
+			characterAfter = Character.toLowerCase(characterAfter); 
+			characterBefore = Character.toLowerCase(characterBefore);
+			
+			if(!(characterAfter >= 'a' && characterAfter <= 'z') && !(characterAfter >= '0' && characterAfter <= '9')) {
+				if(!(characterBefore >= 'a' && characterBefore <= 'z') && !(characterBefore >= '0' && characterBefore <= '9'))
+					count++;
+			}
+		}
 		
 		return count;
 	}
 	
-	//_________________________________________Tester Functions_________________________________________________________
+	//_________________________________________Tester Methods_________________________________________________________
 	//These functions don't help with the functionality of the code, but allow access to private methods that are used in the code
 	public int testBlockCommentsCount(String line) {
 		return blockCommentsCount(line);
 	}
+	
+	public static int testCountOccurencesOfTODO(String line) {
+		return countOccurencesOfTODO(line);
+	}
+	
+	//_________________________________________END Tester Methods_____________________________________________________
 
 	public static void main(String[] args) throws IOException {
-		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\javaTest1.java");
+		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\pythonTest1.py");		
+		
 		System.out.println(c.getFileType());
 		System.out.println(c.Analyze());
 	}
