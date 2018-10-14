@@ -80,15 +80,28 @@ public class CommentCounter {
 		int singleCommentCount = 0; //count of single line comments
 		int blockCommentCount = 0; //count of blocks of comments
 		int blockCommentLineCount = 0; //count of lines of comments that are in a block
+		int lineCount = 0; //total number of lines
 		
 		//loop through all lines in the file
 		while(line != null) {
+			lineCount++; //increment total number of lines
+			
+			if(line == "") { //if line is empty, skip it and move to the next one
+				line = buffer.readLine();
+				continue;
+			}
+			
 			//check for a TODO
 			if(line.contains("TODO"))
 				TODOcount += CommentCounter.countOccurences(line, "TODO");
 			
 			if(!inBlockComment) { //if not currently in a block comment
-				if(line.contains(singleComment) && line.contains(blockCommentStart)) { //if line contains both types of comments, see which comes first
+				
+				//these booleans help reduce calls on .contains method
+				boolean containsSingleComment = line.contains(singleComment);
+				boolean containsBlockCommentStart = line.contains(blockCommentStart);
+				
+				if(containsSingleComment && containsBlockCommentStart) { //if line contains both types of comments, see which comes first
 					int singlePos, blockPos;
 					singlePos = line.indexOf(singleComment);
 					blockPos = line.indexOf(blockCommentStart);
@@ -98,15 +111,35 @@ public class CommentCounter {
 						blockCommentLineCount++; //add to count of lines
 						blockCommentCount += blockCommentsCount(line); //this method counts the number of blocks per line
 					}
+				}else if(containsSingleComment) {
+					singleCommentCount++;
+				}else if(containsBlockCommentStart) {
+					blockCommentLineCount++;
+					blockCommentCount += blockCommentsCount(line);
 				}
-			}else
+			}else { //if currently in a block comment
+				blockCommentLineCount++; //increment count of lines with a block comment
+				int indexBlockCommentEnd = line.indexOf(blockCommentEnd);
+				if(indexBlockCommentEnd >= 0) { //if the comment is ending on this line
+					line = line.substring(indexBlockCommentEnd, line.length());
+					inBlockComment = false; //have now exited the block comment
+					blockCommentCount += blockCommentsCount(line);
+				}
+			}
 			
 			line = buffer.readLine(); //read next line in the file
 		}
 		
-		System.out.println(TODOcount);
+		buffer.close(); //close the buffer
 		
-		return ""; //TODO return an actual output
+		String returnString = "Total # of lines: " +lineCount+
+				"\nTotal # of comment lines: " +(singleCommentCount+blockCommentLineCount)+
+				"\nTotal # of single line comments: " +singleCommentCount+
+				"\nTotal # of comment lines within block comments: " +blockCommentLineCount+
+				"\nTotal # of block line comments: " +blockCommentCount+
+				"\nTotal # of TODO’s: "+TODOcount;
+		
+		return returnString; //TODO return an actual output
 		
 	}
 
@@ -123,7 +156,7 @@ public class CommentCounter {
 			if(index >= 0) { //enter start of block comment
 				line = line.substring(index+2, line.length()); //slice of the start of the string
 				blockCount++;
-				inBlockComment = true;
+				inBlockComment = true; //this method will dynamically update this variable as it enters and exits blocks
 			}
 			index = line.indexOf(blockCommentEnd); //exit a block comment
 			if(index >= 0) {
@@ -153,9 +186,9 @@ public class CommentCounter {
 	}
 
 	public static void main(String[] args) throws IOException {
-		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\javaTest1.java");
+		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\typescriptTest1.ts");
 		System.out.println(c.getFileType());
-		c.Analyze();
+		System.out.println(c.Analyze());
 	}
 
 }
