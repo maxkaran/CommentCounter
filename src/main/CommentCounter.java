@@ -1,11 +1,16 @@
 package main;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 public class CommentCounter {
 	private Path filePath;
@@ -18,11 +23,16 @@ public class CommentCounter {
 	private String blockCommentStart; 
 	private String blockCommentEnd;
 	
+	private final String serializedFileName = "./serializedHash.ser";
+	private HashMap<String, String[]> commentSet; //this is the serialized data object that will store all possible comment tokens for different languages
+												  //The key will be the file extension, and the value will be an array
+	
 	boolean inBlockComment = false;
 
 	
 	//Main Constructor
-	public CommentCounter(String filepath){
+	@SuppressWarnings("unchecked")
+	public CommentCounter(String filepath) throws ClassNotFoundException, IOException{
 		this.filePath= Paths.get(filepath);
 		this.fileName = filePath.getFileName().toString();
 		
@@ -33,11 +43,33 @@ public class CommentCounter {
 		else //if the number returned is negative then there is no '.', which means there is no file extension and it can also be ignored
 			this.fileType = null;
 		
-		//For now, comment strings will be hard coded
-		//TODO dynamically generate these based on file input
-		singleComment = "#";
-		blockCommentStart = null;
-		blockCommentEnd = null;
+		//Get the hashMap
+		try {
+			FileInputStream fis = new FileInputStream(serializedFileName);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			this.commentSet = (HashMap<String, String[]>) ois.readObject();
+			ois.close();
+		} catch (IOException e) {//if file does not exist, make a new hashmap
+			e.printStackTrace();
+			System.out.println("File not found, generating a fresh Hashmap with some presets");
+			commentSet = new HashMap<String, String[]>();
+			//add comment tokens for java, ts, js, and py file extensions
+			commentSet.put("java", new String[]{"//","/*","*/"});
+			commentSet.put("ts", new String[]{"//","/*","*/"});
+			commentSet.put("js", new String[]{"//","/*","*/"});
+			commentSet.put("py", new String[]{"#",null,null});
+			
+			serializeCommentSet(); //write this new table to file
+		}
+		
+		//dynamically generate comment strings based on file input
+		if(commentSet.containsKey(fileType)) {
+			String[] commentTokens = commentSet.get(fileType);
+			singleComment = commentTokens[0];
+			blockCommentStart = commentTokens[1];
+			blockCommentEnd = commentTokens[2];
+		}
+
 	}
 	
 	//______________________________________________GETTERS AND SETTERS____________________________________________________________
@@ -139,6 +171,8 @@ public class CommentCounter {
 		return returnString; //TODO return an actual output
 		
 	}
+	
+	//______________________________________________HELPER FUNCTIONS__________________________________________________________
 
 	//helper function that will count how many blocks of comments are in a line
 	private int blockCommentsCount(String line) {
@@ -196,7 +230,15 @@ public class CommentCounter {
 		return count;
 	}
 	
-	//_________________________________________Tester Methods_________________________________________________________
+	private void serializeCommentSet() throws IOException { //this function will take the hashmap of comment tokens, serialize it and write it to the file
+		FileOutputStream fos = new FileOutputStream(serializedFileName);
+		ObjectOutputStream oos = new ObjectOutputStream(fos);
+		oos.writeObject(commentSet);
+	}
+	
+	//__________________________________________________END HELPER FUNCTIONS________________________________________________
+	
+	//_________________________________________Tester Methods_______________________________________________________________
 	//These functions don't help with the functionality of the code, but allow access to private methods that are used in the code
 	public int testBlockCommentsCount(String line) {
 		return blockCommentsCount(line);
@@ -208,8 +250,8 @@ public class CommentCounter {
 	
 	//_________________________________________END Tester Methods_____________________________________________________
 
-	public static void main(String[] args) throws IOException {
-		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\pythonTest1.py");		
+	public static void main(String[] args) throws IOException, ClassNotFoundException {
+		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\pythonTest1.python");		
 		
 		System.out.println(c.getFileType());
 		System.out.println(c.Analyze());
