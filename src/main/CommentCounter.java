@@ -121,7 +121,7 @@ public class CommentCounter {
 				blockCommentLineCount++; //increment count of lines with a block comment
 				int indexBlockCommentEnd = line.indexOf(blockCommentEnd);
 				if(indexBlockCommentEnd >= 0) { //if the comment is ending on this line
-					line = line.substring(indexBlockCommentEnd, line.length());
+					line = line.substring(indexBlockCommentEnd+blockCommentEnd.length(), line.length());
 					inBlockComment = false; //have now exited the block comment
 					blockCommentCount += blockCommentsCount(line);
 				}
@@ -154,14 +154,14 @@ public class CommentCounter {
 			index = line.indexOf(blockCommentStart);
 			
 			if(index >= 0) { //enter start of block comment
-				line = line.substring(index+2, line.length()); //slice of the start of the string
+				line = line.substring(index+blockCommentStart.length(), line.length()); //slice of the start of the string
 				blockCount++;
 				inBlockComment = true; //this method will dynamically update this variable as it enters and exits blocks
 			}
 			index = line.indexOf(blockCommentEnd); //exit a block comment
 			if(index >= 0) {
 				inBlockComment = false;
-				line = line.substring(index+2, line.length());
+				line = line.substring(index+blockCommentEnd.length(), line.length());
 			}
 			
 		}
@@ -186,7 +186,7 @@ public class CommentCounter {
 	}
 
 	public static void main(String[] args) throws IOException {
-		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\typescriptTest1.ts");
+		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\javaTest1.java");
 		System.out.println(c.getFileType());
 		System.out.println(c.Analyze());
 	}
