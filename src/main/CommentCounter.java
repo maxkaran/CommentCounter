@@ -28,6 +28,14 @@ public class CommentCounter {
 												  //The key will be the file extension, and the value will be an array
 	
 	boolean inBlockComment = false;
+	boolean potentialBlockComment = false; //this is for only single line comment files (like python), it tracks if the last line started with a single line comment, which is potentially the start of a block comment
+	
+	//count variables used in Analyze() method
+	private int TODOcount = 0; //count of TODOs
+	private int singleCommentCount = 0; //count of single line comments
+	private int blockCommentCount = 0; //count of blocks of comments
+	private int blockCommentLineCount = 0; //count of lines of comments that are in a block
+	private int lineCount = 0; //total number of lines
 
 	
 	//Main Constructor
@@ -103,57 +111,32 @@ public class CommentCounter {
 		
 		//initialize boolean values to keep track of different scenarios
 		inBlockComment = false; //is the current line in a block of comments comment
-		
+		potentialBlockComment = false;
 		
 		//initialize all the count variables
-		int TODOcount = 0; //count of TODOs
-		int singleCommentCount = 0; //count of single line comments
-		int blockCommentCount = 0; //count of blocks of comments
-		int blockCommentLineCount = 0; //count of lines of comments that are in a block
-		int lineCount = 0; //total number of lines
+		TODOcount = 0; 
+		singleCommentCount = 0;
+		blockCommentCount = 0; 
+		blockCommentLineCount = 0; 
+		lineCount = 0;
 		
 		//loop through all lines in the file
 		while(line != null) {
 			lineCount++; //increment total number of lines
-			
-			if(line == "") { //if line is empty, skip it and move to the next one
-				line = buffer.readLine();
-				continue;
-			}
+			line = line.trim(); //remove any leading or trailing white space
 			
 			//check for TODOs
 			TODOcount += CommentCounter.countOccurencesOfTODO(line);
 			
-			if(!inBlockComment) { //if not currently in a block comment
-				
-				//these booleans help reduce calls on .contains method
-				boolean containsSingleComment = line.contains(singleComment);
-				boolean containsBlockCommentStart = line.contains(blockCommentStart);
-				
-				if(containsSingleComment && containsBlockCommentStart) { //if line contains both types of comments, see which comes first
-					int singlePos, blockPos;
-					singlePos = line.indexOf(singleComment);
-					blockPos = line.indexOf(blockCommentStart);
-					if(singlePos < blockPos) //single line comes first
-						singleCommentCount++;
-					else { //block comment comes first
-						blockCommentLineCount++; //add to count of lines
-						blockCommentCount += blockCommentsCount(line); //this method counts the number of blocks per line
-					}
-				}else if(containsSingleComment) {
-					singleCommentCount++;
-				}else if(containsBlockCommentStart) {
-					blockCommentLineCount++;
-					blockCommentCount += blockCommentsCount(line);
-				}
-			}else { //if currently in a block comment
-				blockCommentLineCount++; //increment count of lines with a block comment
-				int indexBlockCommentEnd = line.indexOf(blockCommentEnd);
-				if(indexBlockCommentEnd >= 0) { //if the comment is ending on this line
-					line = line.substring(indexBlockCommentEnd+blockCommentEnd.length(), line.length());
-					inBlockComment = false; //have now exited the block comment
-					blockCommentCount += blockCommentsCount(line);
-				}
+			//This part of the function can get confusing now
+			//There are two ways comments will be processed, either there are single line comment tokens and multiline comment tokens
+			//or there are languages with only one comment token, the following if statement will process them differently depending
+			if(blockCommentStart == null || blockCommentEnd == null) {
+				AnalyzeSingleOnly(line);
+			}else if(singleComment != null) {
+				AnalyzeSingleAndMulti(line);
+			}else {
+				return "Problem with comment tokens";
 			}
 			
 			line = buffer.readLine(); //read next line in the file
@@ -173,6 +156,74 @@ public class CommentCounter {
 	}
 	
 	//______________________________________________HELPER FUNCTIONS__________________________________________________________
+	
+	private void AnalyzeSingleOnly(String line) {
+		if(!inBlockComment) {//currently not in block comment
+			if(line.indexOf(singleComment) == 0) { //this could be the start of a block comment
+				if(potentialBlockComment) {
+					inBlockComment = true; //officially in a block comment
+					blockCommentCount++; 
+					blockCommentLineCount += 2; //add two to account for previous line
+					singleCommentCount--; //subtract the one we added when we thought it was a single line
+				}else {
+					potentialBlockComment = true;
+					singleCommentCount++;
+				}
+				
+			}else if(line.contains(singleComment)) { //otherwise if it is just a line with a single comment
+				singleCommentCount++; 
+				potentialBlockComment = false;
+			}else { //otherwise just a line with no comment
+				potentialBlockComment = false;
+			}
+			
+		}else { //currently in a block comment
+			if(line.indexOf(singleComment) == 0) {
+				blockCommentLineCount++;
+			}else if(line.contains(singleComment)) { //there is a single line comment, but it is not at start of the line, so it is not part of the block comment
+				inBlockComment = false;
+				potentialBlockComment = false;
+				singleCommentCount++;
+			}else { //if no single line, just say block comment has ended
+				inBlockComment = false;
+				potentialBlockComment = false;
+			}
+		}
+	}
+	
+	private void AnalyzeSingleAndMulti(String line) {
+		if(!inBlockComment) { //if not currently in a block comment
+			
+			//these booleans help reduce calls on .contains method
+			boolean containsSingleComment = line.contains(singleComment);
+			boolean containsBlockCommentStart = line.contains(blockCommentStart);
+			
+			if(containsSingleComment && containsBlockCommentStart) { //if line contains both types of comments, see which comes first
+				int singlePos, blockPos;
+				singlePos = line.indexOf(singleComment);
+				blockPos = line.indexOf(blockCommentStart);
+				if(singlePos < blockPos) //single line comes first
+					singleCommentCount++;
+				else { //block comment comes first
+					blockCommentLineCount++; //add to count of lines
+					blockCommentCount += blockCommentsCount(line); //this method counts the number of blocks per line
+				}
+			}else if(containsSingleComment) {
+				singleCommentCount++;
+			}else if(containsBlockCommentStart) {
+				blockCommentLineCount++;
+				blockCommentCount += blockCommentsCount(line);
+			}
+		}else { //if currently in a block comment
+			blockCommentLineCount++; //increment count of lines with a block comment
+			int indexBlockCommentEnd = line.indexOf(blockCommentEnd);
+			if(indexBlockCommentEnd >= 0) { //if the comment is ending on this line
+				line = line.substring(indexBlockCommentEnd+blockCommentEnd.length(), line.length());
+				inBlockComment = false; //have now exited the block comment
+				blockCommentCount += blockCommentsCount(line);
+			}
+		}
+	}
 
 	//helper function that will count how many blocks of comments are in a line
 	private int blockCommentsCount(String line) {
@@ -251,7 +302,7 @@ public class CommentCounter {
 	//_________________________________________END Tester Methods_____________________________________________________
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\pythonTest1.python");		
+		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\pythonTest1.py");		
 		
 		System.out.println(c.getFileType());
 		System.out.println(c.Analyze());
