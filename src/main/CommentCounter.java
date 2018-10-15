@@ -144,12 +144,12 @@ public class CommentCounter {
 		
 		buffer.close(); //close the buffer
 		
-		String returnString = "Total # of lines: " +lineCount+
-				"\nTotal # of comment lines: " +(singleCommentCount+blockCommentLineCount)+
-				"\nTotal # of single line comments: " +singleCommentCount+
-				"\nTotal # of comment lines within block comments: " +blockCommentLineCount+
-				"\nTotal # of block line comments: " +blockCommentCount+
-				"\nTotal # of TODO’s: "+TODOcount;
+		String returnString = "Total # of lines: " +lineCount+System.getProperty("line.separator")+
+				"Total # of comment lines: " +(singleCommentCount+blockCommentLineCount)+System.getProperty("line.separator")+
+				"Total # of single line comments: " +singleCommentCount+System.getProperty("line.separator")+
+				"Total # of comment lines within block comments: " +blockCommentLineCount+System.getProperty("line.separator")+
+				"Total # of block line comments: " +blockCommentCount+System.getProperty("line.separator")+
+				"Total # of TODO’s: "+TODOcount;
 		
 		return returnString; //TODO return an actual output
 		
@@ -301,11 +301,11 @@ public class CommentCounter {
 	
 	//_________________________________________END Tester Methods_____________________________________________________
 
-	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\pythonTest1.py");		
-		
-		System.out.println(c.getFileType());
-		System.out.println(c.Analyze());
-	}
+//	public static void main(String[] args) throws IOException, ClassNotFoundException {
+//		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\pythonTest1.py");		
+//		
+//		System.out.println(c.getFileType());
+//		System.out.println(c.Analyze());
+//	}
 
 }
