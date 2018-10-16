@@ -36,11 +36,12 @@ public class CommentCounter {
 	private int blockCommentCount = 0; //count of blocks of comments
 	private int blockCommentLineCount = 0; //count of lines of comments that are in a block
 	private int lineCount = 0; //total number of lines
+	private int doubleTypeCommentCount = 0; //lines that have both types of comments
 
 	
 	//Main Constructor
 	@SuppressWarnings("unchecked")
-	public CommentCounter(String filepath) throws ClassNotFoundException, IOException{
+	public CommentCounter(String filepath) throws ClassNotFoundException, IOException, filetypeNotInCommentSetException{
 		this.filePath= Paths.get(filepath);
 		this.fileName = filePath.getFileName().toString();
 		
@@ -66,17 +67,22 @@ public class CommentCounter {
 			commentSet.put("ts", new String[]{"//","/*","*/"});
 			commentSet.put("js", new String[]{"//","/*","*/"});
 			commentSet.put("py", new String[]{"#",null,null});
+			commentSet.put("html", new String[]{null,"<!--","-->"});
+
 			
 			serializeCommentSet(); //write this new table to file
 		}
 		
 		//dynamically generate comment strings based on file input
 		if(commentSet.containsKey(fileType)) {
-			String[] commentTokens = commentSet.get(fileType);
-			singleComment = commentTokens[0];
-			blockCommentStart = commentTokens[1];
-			blockCommentEnd = commentTokens[2];
+				String[] commentTokens = commentSet.get(fileType);
+				singleComment = commentTokens[0];
+				blockCommentStart = commentTokens[1];
+				blockCommentEnd = commentTokens[2];
+		}else{
+			throw new filetypeNotInCommentSetException();
 		}
+		
 
 	}
 	
@@ -96,6 +102,13 @@ public class CommentCounter {
 	
 	//______________________________________________END GETTERS AND SETTERS________________________________________________________
 
+	public void addLanguage(String filetype, String single, String multistart, String multiend) throws IOException {
+		commentSet.put(filetype, new String[]{single, multistart, multiend}); //add this to set of know languages
+		
+		//now write this new object to serializedHash.ser
+		serializeCommentSet();		
+	}
+	
 	public String Analyze() throws IOException {
 		BufferedReader buffer;
 		
@@ -119,6 +132,7 @@ public class CommentCounter {
 		blockCommentCount = 0; 
 		blockCommentLineCount = 0; 
 		lineCount = 0;
+		doubleTypeCommentCount = 0;
 		
 		//loop through all lines in the file
 		while(line != null) {
@@ -135,6 +149,8 @@ public class CommentCounter {
 				AnalyzeSingleOnly(line);
 			}else if(singleComment != null) {
 				AnalyzeSingleAndMulti(line);
+			}else if(blockCommentStart != null || blockCommentEnd != null){
+				AnalyzeMultiOnly(line);
 			}else {
 				return "Problem with comment tokens";
 			}
@@ -144,11 +160,13 @@ public class CommentCounter {
 		
 		buffer.close(); //close the buffer
 		
-		String returnString = "Total # of lines: " +lineCount+System.getProperty("line.separator")+
-				"Total # of comment lines: " +(singleCommentCount+blockCommentLineCount)+System.getProperty("line.separator")+
-				"Total # of single line comments: " +singleCommentCount+System.getProperty("line.separator")+
-				"Total # of comment lines within block comments: " +blockCommentLineCount+System.getProperty("line.separator")+
-				"Total # of block line comments: " +blockCommentCount+System.getProperty("line.separator")+
+		String newline = System.getProperty("line.separator");
+		
+		String returnString = "Total # of lines: " +lineCount+newline+
+				"Total # of comment lines: " +(singleCommentCount+blockCommentLineCount-doubleTypeCommentCount)+newline+
+				"Total # of single line comments: " +singleCommentCount+newline+
+				"Total # of comment lines within block comments: " +blockCommentLineCount+newline+
+				"Total # of block line comments: " +blockCommentCount+newline+
 				"Total # of TODO’s: "+TODOcount;
 		
 		return returnString; //TODO return an actual output
@@ -191,6 +209,27 @@ public class CommentCounter {
 		}
 	}
 	
+	private void AnalyzeMultiOnly(String line) {
+		//these booleans help reduce calls on .contains method
+		boolean containsBlockCommentStart = line.contains(blockCommentStart);
+		boolean containsBlockCommentEnd = line.contains(blockCommentEnd);
+			
+		if(!inBlockComment) { //if not currently in a block comment
+			if(containsBlockCommentStart) {
+				blockCommentLineCount++;
+				blockCommentCount += blockCommentsCount(line);
+			}
+		}else { //if currently in a block comment
+			blockCommentLineCount++; //increment count of lines with a block comment
+			int indexBlockCommentEnd = line.indexOf(blockCommentEnd);
+			if(indexBlockCommentEnd >= 0) { //if the comment is ending on this line
+				line = line.substring(indexBlockCommentEnd+blockCommentEnd.length(), line.length());
+				inBlockComment = false; //have now exited the block comment
+				blockCommentCount += blockCommentsCount(line);
+			}
+		}
+	}
+	
 	private void AnalyzeSingleAndMulti(String line) {
 		if(!inBlockComment) { //if not currently in a block comment
 			
@@ -220,7 +259,7 @@ public class CommentCounter {
 			if(indexBlockCommentEnd >= 0) { //if the comment is ending on this line
 				line = line.substring(indexBlockCommentEnd+blockCommentEnd.length(), line.length());
 				inBlockComment = false; //have now exited the block comment
-				blockCommentCount += blockCommentsCount(line);
+				blockCommentCount += blockCommentsCount(line); 
 			}
 		}
 	}
@@ -244,6 +283,12 @@ public class CommentCounter {
 			if(index >= 0) {
 				inBlockComment = false;
 				line = line.substring(index+blockCommentEnd.length(), line.length());
+			}
+			
+			if(singleComment != null && line.indexOf(blockCommentStart) < line.indexOf(singleComment)) { //if there is a single comment before next multiline comment
+				singleCommentCount++; //increase count of single comments
+				doubleTypeCommentCount++; //increase count of lines with both types of comments
+				return blockCount; //rest of multiline comments on this line are invalid
 			}
 			
 		}
@@ -300,12 +345,5 @@ public class CommentCounter {
 	}
 	
 	//_________________________________________END Tester Methods_____________________________________________________
-
-//	public static void main(String[] args) throws IOException, ClassNotFoundException {
-//		CommentCounter c = new CommentCounter("C:\\Users\\Max\\workspace\\CommentCounter\\test\\input_files\\pythonTest1.py");		
-//		
-//		System.out.println(c.getFileType());
-//		System.out.println(c.Analyze());
-//	}
 
 }
