@@ -3,14 +3,11 @@ package main;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.ReadOnlyFileSystemException;
 import java.util.Scanner;
 
 public class CommentCounterCLI {
 	private CommentCounter commentCounter;
 	Scanner scanner;
-	private String filepath;
-	
 	public CommentCounterCLI() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException{
 		scanner = new Scanner(System.in);
 
@@ -28,6 +25,9 @@ public class CommentCounterCLI {
 			if(input != null) { //make sure they actually chose a file
 				System.out.println("You have chosen: " +input);
 				input = new File(input).getAbsoluteFile().toString();	
+			}else {
+				System.out.println("Please select a valid file\n");
+				return;
 			}
 		}
 		try {
@@ -37,7 +37,9 @@ public class CommentCounterCLI {
 		}
 	}
 	
-	public void analyzeFile(String filepath) throws IOException{
+	//______________________________________________HELPER FUNCTIONS__________________________________________________________
+	
+	private void analyzeFile(String filepath) throws IOException{
 		try {
 			commentCounter = new CommentCounter(filepath);
 		} catch (ClassNotFoundException | IOException | filetypeNotInCommentSetException e) {

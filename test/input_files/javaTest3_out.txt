@@ -1,0 +1,6 @@
+Total # of lines: 25
+Total # of comment lines: 8
+Total # of single line comments: 3
+Total # of comment lines within block comments: 6
+Total # of block line comments: 3
+Total # of TODO’s: 2

@@ -84,8 +84,9 @@ class CommentCounter_AnalyzeTest {
 		
 		Output = c.Analyze();
 		CorrectOutput = readFile(CorrectOutputFilename);
-		
+
 		CorrectOutput = CorrectOutput.replaceAll("\r\n", System.getProperty("line.separator")); //replace default windows line terminator with line terminator that is used in this machines OS
+
 		assertEquals(CorrectOutput, Output);
 		
 	}
