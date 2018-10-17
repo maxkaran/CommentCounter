@@ -24,7 +24,7 @@ class CommentCounter_AnalyzeTest {
 	 }
 
 	@Test
-	void test1() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException {
+	void test1() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
 		String CorrectOutput, Output;
 		String InputFilename = ".\\test\\input_files\\pythonTest1.py";
 		String CorrectOutputFilename = ".\\test\\input_files\\pythonTest1_out.txt";
@@ -41,7 +41,7 @@ class CommentCounter_AnalyzeTest {
 	}
 	
 	@Test
-	void test2() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException {
+	void test2() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
 		String CorrectOutput, Output;
 		String InputFilename = ".\\test\\input_files\\typescriptTest1.ts";
 		String CorrectOutputFilename = ".\\test\\input_files\\typescriptTest1_out.txt";
@@ -58,7 +58,7 @@ class CommentCounter_AnalyzeTest {
 	}
 	
 	@Test
-	void test3() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException {
+	void test3() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
 		String CorrectOutput, Output;
 		String InputFilename = ".\\test\\input_files\\javaTest1.java";
 		String CorrectOutputFilename = ".\\test\\input_files\\javaTest1_out.txt";
@@ -75,7 +75,7 @@ class CommentCounter_AnalyzeTest {
 	}
 	
 	@Test
-	void test4() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException {
+	void test4() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
 		String CorrectOutput, Output;
 		String InputFilename = ".\\test\\input_files\\javaTest2.java";
 		String CorrectOutputFilename = ".\\test\\input_files\\javaTest2_out.txt";
@@ -91,7 +91,7 @@ class CommentCounter_AnalyzeTest {
 	}
 	
 	@Test
-	void test5() throws ClassNotFoundException, IOException {
+	void test5() throws ClassNotFoundException, IOException, notValidFiletypeException {
 		String CorrectOutput, Output;
 		String InputFilename = ".\\test\\input_files\\htmlTest1.html";
 		String CorrectOutputFilename = ".\\test\\input_files\\htmlTest1_out.txt";

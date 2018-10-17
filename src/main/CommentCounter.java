@@ -41,7 +41,7 @@ public class CommentCounter {
 	
 	//Main Constructor
 	@SuppressWarnings("unchecked")
-	public CommentCounter(String filepath) throws ClassNotFoundException, IOException, filetypeNotInCommentSetException{
+	public CommentCounter(String filepath) throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException{ //TODO update to FILE not String input
 		this.filePath= Paths.get(filepath);
 		this.fileName = filePath.getFileName().toString();
 		
@@ -50,7 +50,7 @@ public class CommentCounter {
 		if(indexOfPeriod > 0 && fileName.charAt(0) != '.') //if first character is '.', file can be ignored
 			this.fileType = fileName.substring(indexOfPeriod+1, fileName.length()); //get the rest of the string after the last '.'
 		else //if the number returned is negative then there is no '.', which means there is no file extension and it can also be ignored
-			this.fileType = null;
+			throw new notValidFiletypeException();
 		
 		//Get the hashMap
 		try {
@@ -106,7 +106,7 @@ public class CommentCounter {
 		commentSet.put(filetype, new String[]{single, multistart, multiend}); //add this to set of know languages
 		
 		//now write this new object to serializedHash.ser
-		serializeCommentSet();		
+		serializeCommentSet();
 	}
 	
 	public String Analyze() throws IOException {
@@ -330,6 +330,7 @@ public class CommentCounter {
 		FileOutputStream fos = new FileOutputStream(serializedFileName);
 		ObjectOutputStream oos = new ObjectOutputStream(fos);
 		oos.writeObject(commentSet);
+		oos.close();
 	}
 	
 	//__________________________________________________END HELPER FUNCTIONS________________________________________________
