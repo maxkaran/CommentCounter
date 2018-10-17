@@ -110,5 +110,22 @@ class CommentCounter_AnalyzeTest {
 		}
 		
 	}
+	
+	@Test
+	void test6() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
+		String CorrectOutput, Output;
+		String InputFilename = ".\\test\\input_files\\pythonTest2.py";
+		String CorrectOutputFilename = ".\\test\\input_files\\pythonTest2_out.txt";
+		
+		CommentCounter c = new CommentCounter(InputFilename);
+		
+		Output = c.Analyze();
+		CorrectOutput = readFile(CorrectOutputFilename);
+		
+		CorrectOutput = CorrectOutput.replaceAll("\r\n", System.getProperty("line.separator")); //replace default windows line terminator with line terminator that is used in this machines OS
+		
+		assertEquals(CorrectOutput, Output);
+		
+	}
 
 }
