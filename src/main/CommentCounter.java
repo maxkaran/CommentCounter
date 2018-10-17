@@ -42,7 +42,6 @@ public class CommentCounter {
 
 	
 	//Main Constructor
-	@SuppressWarnings("unchecked")
 	public CommentCounter(String filepath) throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException{ //TODO update to FILE not String input
 		this.filePath= Paths.get(filepath);
 		this.fileName = filePath.getFileName().toString();
@@ -51,6 +50,8 @@ public class CommentCounter {
 		int indexOfPeriod = fileName.lastIndexOf('.'); //get the index of the last '.' in the filename, which will precede the file type extension
 		if(indexOfPeriod > 0 && fileName.charAt(0) != '.') //if first character is '.', file can be ignored
 			this.fileType = fileName.substring(indexOfPeriod+1, fileName.length()); //get the rest of the string after the last '.'
+		else if(!filePath.toFile().exists())
+			throw new notValidFiletypeException("This file does not exist!");
 		else //if the number returned is negative then there is no '.', which means there is no file extension and it can also be ignored
 			throw new notValidFiletypeException();
 		
@@ -193,8 +194,6 @@ public class CommentCounter {
 			line = buffer.readLine(); //read next line in the file
 		}
 		
-		if(prevLine != null && prevLine.contains("\n")) //this is to fix bug where empty last line is not counted
-			lineCount++;
 		
 		buffer.close(); //close the buffer
 		

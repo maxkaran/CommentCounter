@@ -13,7 +13,8 @@ public class CommentCounterCLI {
 	public CommentCounterCLI() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException{
 		scanner = new Scanner(System.in);
 
-		System.out.println("Welcome to Comment Counter CLI by Max Karan! Analyze your code with unparalleled efficiency.");
+		System.out.println("Welcome to Comment Counter CLI by Max Karan! Analyze your code with unparalleled efficiency.\n"
+						 + "============================================================================================");
 	}
 	
 	public void readNewFile() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
@@ -22,11 +23,16 @@ public class CommentCounterCLI {
 		if(input.equals("") || input.equals(" ")) {
 			FileOpener fileopener = new FileOpener();
 			input = fileopener.getFilePath();
-			System.out.println("You have chosen: " +input);
-			input = new File(input).getAbsoluteFile().toString();
-
+			
+			if(input != null) { //make sure they actually chose a file
+				System.out.println("You have chosen: " +input);
+				input = new File(input).getAbsoluteFile().toString();	
+			}
 		}
-		analyzeFile(input);
+		if(input != null)
+			analyzeFile(input);
+		else
+			System.out.println("Please select a valid file\n");
 	}
 	
 	public void analyzeFile(String filepath) throws IOException, ClassNotFoundException, filetypeNotInCommentSetException, notValidFiletypeException {
@@ -68,7 +74,6 @@ public class CommentCounterCLI {
 	}
 	
 	public static void main(String[] args) throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
-		System.out.println("" == null);
 		
 		CommentCounterCLI cli = new CommentCounterCLI();
 		CommentCounter commentcounter;
