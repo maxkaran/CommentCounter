@@ -34,23 +34,7 @@ public class CommentCounterCLI {
 			commentCounter = new CommentCounter(filepath);
 		} catch (ClassNotFoundException | IOException | filetypeNotInCommentSetException e) {
 			//e.printStackTrace();
-			if(e instanceof filetypeNotInCommentSetException) { //if filetype is not in commentSet
-				System.out.println("This is not a valid file extension for analysis, would you like to add it? (Y/N)");
-				String input = scanner.next();
-				input = input.toLowerCase(); //make it all lowercase
-				while(true){
-					if(input.equals("yes") || input.equals("y")) {
-						addFileType(commentCounter.getFileType());
-						commentCounter = new CommentCounter(filepath);
-						System.out.println("Performing analysis now...\n");
-						System.out.println(commentCounter.Analyze()+"\nAnalysis Complete!");
-						return;
-					}else if(input.equals("no") || input.equals("n")) {
-						System.out.println("Aborting Analysis");
-						return;
-					}
-				}
-			}else if (e instanceof IOException) {
+			if (e instanceof IOException) {
 				System.out.println("Incorrect filename");
 				return;
 			}
@@ -84,6 +68,8 @@ public class CommentCounterCLI {
 	}
 	
 	public static void main(String[] args) throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
+		System.out.println("" == null);
+		
 		CommentCounterCLI cli = new CommentCounterCLI();
 		CommentCounter commentcounter;
 		String input = " ";
