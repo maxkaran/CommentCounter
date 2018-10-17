@@ -62,7 +62,7 @@ public class CommentCounter {
 			this.commentSet = (HashMap<String, String[]>) ois.readObject();
 			ois.close();
 		} catch (IOException e) {//if file does not exist, make a new hashmap
-			System.out.println("File not found, generating a fresh Hashmap with some presets");
+			System.out.println("Hash File not found, generating a fresh Hashmap with some presets");
 			commentSet = new HashMap<String, String[]>();
 			//add comment tokens for java, ts, js, and py file extensions
 			commentSet.put("java", new String[]{"//","/*","*/"});
@@ -85,24 +85,30 @@ public class CommentCounter {
 			System.out.println("This is not a valid file extension for analysis, would you like to add it? (Y/N)");
 			
 			Scanner scanner = new Scanner(System.in);
-			String input = scanner.next();
+			String input = scanner.nextLine();
 			input = input.toLowerCase(); //make it all lowercase
 			while(true){
 				if(input.equals("yes") || input.equals("y")) {
 
 					System.out.println("Please enter the single comment line token if there is one and just hit enter if there isn't");
 					System.out.println("i.e. // is the single comment token for Java, C, Javascript and many more languages");
-					String single = scanner.next();
+					String single = scanner.nextLine();
 					
 					System.out.println("Please enter the multiline comment START token if there is one and leave blank if there isn't");
 					System.out.println("i.e. /* is the token for Java, C, Javascript and many more languages, for HTML <!-- is the token");
-					String multiStart = scanner.next();
+					String multiStart = scanner.nextLine();
 					
 					System.out.println("Please enter the multiline comment END token if there is one and leave blank if there isn't");
 					System.out.println("i.e. */ is the token for Java, C, Javascript and many more languages, for HTML --> is the token");
-					String multiEnd = scanner.next();
+					String multiEnd = scanner.nextLine();
 					
-					scanner.close();
+					if(single.equals(""))
+						single = null;
+					if(multiStart.equals(""))
+						multiStart = null;
+					if(multiEnd.equals(""))
+						multiEnd = null;
+					
 					addLanguage(fileType, single, multiStart, multiEnd);
 					
 					singleComment = single;
@@ -145,19 +151,14 @@ public class CommentCounter {
 		serializeCommentSet();
 	}
 	
-	public String Analyze() throws IOException {
+	public String Analyze() throws IOException, FileNotFoundException {
 		BufferedReader buffer;
 		
-		try {
-			buffer = new BufferedReader(new FileReader(getFilePath())); //will read the input file			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			System.out.println("File could not be found :(");
-			return "File could not be found :(";
-		}
+		
+		buffer = new BufferedReader(new FileReader(getFilePath())); //will read the input file
 		
 		String line = buffer.readLine();
-		String prevLine = null;
+
 		//initialize boolean values to keep track of different scenarios
 		inBlockComment = false; //is the current line in a block of comments comment
 		potentialBlockComment = false;
@@ -188,9 +189,9 @@ public class CommentCounter {
 			}else if(blockCommentStart != null || blockCommentEnd != null){
 				AnalyzeMultiOnly(line);
 			}else {
+				buffer.close();
 				return "Problem with comment tokens";
 			}
-			prevLine = line;
 			line = buffer.readLine(); //read next line in the file
 		}
 		

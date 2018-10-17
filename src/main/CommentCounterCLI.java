@@ -1,6 +1,7 @@
 package main;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.ReadOnlyFileSystemException;
 import java.util.Scanner;
@@ -20,7 +21,7 @@ public class CommentCounterCLI {
 	public void readNewFile() throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
 		System.out.println("Choose a file: Either enter the filepath manually, or just hit enter to use the file explorer");
 		String input = scanner.nextLine();
-		if(input.equals("") || input.equals(" ")) {
+		if("".equals(input) || " ".equals(input)) {
 			FileOpener fileopener = new FileOpener();
 			input = fileopener.getFilePath();
 			
@@ -29,13 +30,14 @@ public class CommentCounterCLI {
 				input = new File(input).getAbsoluteFile().toString();	
 			}
 		}
-		if(input != null)
+		try {
 			analyzeFile(input);
-		else
+		}catch (FileNotFoundException e){
 			System.out.println("Please select a valid file\n");
+		}
 	}
 	
-	public void analyzeFile(String filepath) throws IOException, ClassNotFoundException, filetypeNotInCommentSetException, notValidFiletypeException {
+	public void analyzeFile(String filepath) throws IOException{
 		try {
 			commentCounter = new CommentCounter(filepath);
 		} catch (ClassNotFoundException | IOException | filetypeNotInCommentSetException e) {
@@ -48,8 +50,12 @@ public class CommentCounterCLI {
 			System.out.println(e.getMessage()+"\n");
 			return;
 		}
-		System.out.println("Performing analysis now...\n");
-		System.out.println(commentCounter.Analyze()+"\n\nAnalysis Complete!\n");
+		try {
+			System.out.println("Performing analysis now...\n");
+			System.out.println(commentCounter.Analyze()+"\n\nAnalysis Complete!\n");
+		}catch(FileNotFoundException e) {
+			System.out.println("File was not found\n");
+		}
 	}
 
 	private void addFileType(String fileExtension) {
@@ -73,19 +79,17 @@ public class CommentCounterCLI {
 		
 	}
 	
-	public static void main(String[] args) throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {
-		
+	public static void main(String[] args) throws ClassNotFoundException, IOException, filetypeNotInCommentSetException, notValidFiletypeException {		
 		CommentCounterCLI cli = new CommentCounterCLI();
-		CommentCounter commentcounter;
 		String input = " ";
 		
-		while(!input.equals("exit")) {
+		while(!input.trim().equals("exit")) {
 			cli.readNewFile();
 			
 			System.out.println("Type exit to quit program, otherwise hit enter");
 			input = cli.scanner.nextLine();
 		}
-		
+		System.out.println("\nBye");
 		cli.scanner.close();
 		
 	}
